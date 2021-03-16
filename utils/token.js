@@ -1,11 +1,14 @@
 import jwt from "jsonwebtoken"
 import {JWT_SECRET} from '../env.js'
 
-export const EXPIRE_DURATION_TOKEN = Math.floor(Date.now() / 1000) + (60 * 60)
+export const EXPIRE_DURATION_TOKEN = Math.round(new Date().getTime() / 1000);
 
-console.log(JWT_SECRET)
-const accessToken = jwt.sign({
-    exp: EXPIRE_DURATION_TOKEN,
-}, JWT_SECRET);
+const getAccessToken = user => {
+    const token = jwt.sign({user}, JWT_SECRET, {expiresIn: EXPIRE_DURATION_TOKEN});
+    
+    return {
+        access_token: token
+    }
+}
 
-export default {accessToken}
+export default getAccessToken

@@ -1,7 +1,11 @@
+import bcrypt from 'bcrypt'
+import jwt from "jsonwebtoken"
+
 import userRepository from "../repositories/userRepository.js"
-import {validationError, unauthorizedError, conflictError} from '../utils/errors.js'
-import token from "../utils/token.js"
+import {validationError, unauthorizedError} from '../utils/errors.js'
+import getAccessToken from "../utils/token.js"
 import {EXPIRE_DURATION_TOKEN} from "../utils/token.js"
+import {JWT_SECRET} from "../env.js"
 
 export const login = async (req, res) => {
     const db = req.app.locals.db;
@@ -9,19 +13,21 @@ export const login = async (req, res) => {
 
     if (!email || !password) return validationError(res)
 
-    const user = await userRepository.getUserByEmailAndPassword(db, {email, password})
+    const verifiedUser = await userRepository.getUserByEmail(db, email)
 
-    if (!user) return unauthorizedError(res)
+    if (!verifiedUser)
+        return unauthorizedError(res)
 
-    const {name} = user
-
+    const validPassword = await bcrypt.compare(password, verifiedUser.password);
+    if (!validPassword)  return unauthorizedError(res)
+    
     res.json({
         "data": {
-            name,
-            email
+            name: verifiedUser.name,
+            email: verifiedUser.email
         },
         "meta": {
-            ...token,
+            ...getAccessToken(verifiedUser),
             "token_type": "Bearer",
             "expires_in": EXPIRE_DURATION_TOKEN
         }
@@ -33,7 +39,7 @@ export const register = async (req, res) => {
     const {email, password, name} = req.body
 
     if (!email || !password || !name) return validationError(res)
-    
+
     try {
         const newUser = await userRepository.insertUser(db, {email, password, name})
 
@@ -43,13 +49,21 @@ export const register = async (req, res) => {
                 email: newUser.email
             },
             "meta": {
-                ...token,
+                ...getAccessToken(newUser),
                 "token_type": "Bearer",
                 "expires_in": EXPIRE_DURATION_TOKEN
             }
         })
     } catch (err) {
-        console.log("Error", err)
         return validationError(res, 'Same email')
     }
+};
+
+export const me = async (req, res) => {
+    const token = req.headers.authorization.split(' ')[1];
+    const decodedToken = jwt.verify(token, JWT_SECRET);
+    
+    const {user: {name, email}} = decodedToken
+
+    res.json({"data": {name, email}})
 };

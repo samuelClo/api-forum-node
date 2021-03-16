@@ -6,9 +6,9 @@ const userRepository = {
 
         return users
     },
-    getUserByEmailAndPassword: async (db, {email, password}) => {
-        const user = await db.collection('Users').findOne({email, password})
-
+    getUserByEmail: async (db, email) => {
+        const user = await db.collection('Users').findOne({email})
+        
         return user
     },
     insertUser: async (db, {email, password, name}) => {
