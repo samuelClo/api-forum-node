@@ -54,7 +54,7 @@ export const register = async (req, res) => {
                 "expires_in": EXPIRE_DURATION_TOKEN
             }
         })
-    } catch (err) {
+    } catch {
         return validationError(res, 'Same email')
     }
 };
