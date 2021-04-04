@@ -5,7 +5,7 @@ import userRepository from "../repositories/userRepository.js"
 import {validationError, unauthorizedError} from '../utils/errors.js'
 import getAccessToken from "../utils/token.js"
 import {EXPIRE_DURATION_TOKEN} from "../utils/token.js"
-import {JWT_SECRET} from "../env.js"
+import env from "../env.js"
 
 export const login = async (req, res) => {
     const db = req.app.locals.db;
@@ -61,7 +61,7 @@ export const register = async (req, res) => {
 
 export const me = async (req, res) => {
     const token = req.headers.authorization.split(' ')[1];
-    const decodedToken = jwt.verify(token, JWT_SECRET);
+    const decodedToken = jwt.verify(token, env.JWT_SECRET);
     
     const {user: {name, email}} = decodedToken
 
