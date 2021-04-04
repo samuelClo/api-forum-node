@@ -4,8 +4,9 @@ import pkg from 'mongodb';
 const {MongoClient} = pkg;
 import bodyParser from 'body-parser';
 import routes from './routes.js';
+import env from './env.js'
 
-const MONGO_URI = "mongodb://localhost:27017/";
+const MONGO_URI = `mongodb://${env.MONGO_USER}:${env.MONGO_PASSWORD}@${env.MONGO_URL}/`;
 const DB_NAME = 'api-forum';
 const SERVER_PORT = 8080
 
@@ -16,7 +17,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(routes);
 
 
-MongoClient.connect(MONGO_URI, async (err, client) => {
+MongoClient.connect(MONGO_URI, { useUnifiedTopology: true }, async (err, client) => {
     if (err) {
         console.warn(`Failed to connect to the database. ${err.stack}`);
     }
